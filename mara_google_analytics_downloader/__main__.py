@@ -48,6 +48,10 @@ from mara_google_analytics_downloader import config as c
               default='\t',
               show_default="\\t",
               required=False)
+@click.option('--add-view-id-column/--no-add-view-id-column',
+              help='Adds a new column at the start with the view id',
+              default=False,
+              required=False)
 @click.option('--fail-on-no-data/--no-fail-on-no-data',
               help='Toggle to fail if no data is received.',
               default=True,
@@ -58,6 +62,7 @@ def ga_download_to_csv(view_id: int,
                        metrics: str,
                        dimensions: str = None,
                        delimiter_char: str = '\t',
+                       add_view_id_column: bool = False,
                        service_account_private_key_id: str = None,
                        service_account_private_key: str = None,
                        service_account_client_email: str = None,
@@ -154,6 +159,7 @@ def ga_download_to_csv(view_id: int,
     nrows = write_response_as_csv_to_stream(response,
                                             stream=stream,
                                             delimiter_char=delimiter_char,
+                                            view_id=view_id if add_view_id_column else None,
                                             write_header=False)
     stream.flush()
 
@@ -227,6 +233,7 @@ def _google_analytics_credentials_from_user_credentials(
 def write_response_as_csv_to_stream(response,
                                     stream: t.TextIO,
                                     delimiter_char: str = '\t',
+                                    view_id: str = None,
                                     write_header: bool = True):
     """Writes the Analytics Reporting API V4 response into a CSV stream.
 
@@ -236,6 +243,7 @@ def write_response_as_csv_to_stream(response,
     response: An Analytics Reporting API V4 response.
     stream: t.TextIO, sink where the processed content is written to (in Text mode, so sys.stdout is suitable)
     delimiter_char: str (default: '\t'), A character that delimits the output fields.
+    view_id: str (default: None), If given the view id will be added as a first column. Column name: 'vid'
     write_header: bool (default: True), If a CSV header should be added at the start
     """
 
@@ -255,6 +263,8 @@ def write_response_as_csv_to_stream(response,
     # write header
     if write_header:
         headerRow = []
+        if view_id != None:
+            headerRow.append('vid')
         for header in dimensionHeaders:
             headerRow.append(header)
         for metricHeader in metricHeaders:
@@ -267,6 +277,10 @@ def write_response_as_csv_to_stream(response,
         dateRangeValues = row.get('metrics', [])
 
         row = []
+
+        if view_id != None:
+            row.append(str(view_id))
+
         for header, dimension in zip(dimensionHeaders, dimensions):
             row.append(dimension)
 

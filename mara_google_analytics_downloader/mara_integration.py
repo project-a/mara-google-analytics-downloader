@@ -19,6 +19,7 @@ class DownloadGoogleAnalyticsFlatTable(pipelines.Command):
                  target_db_alias: str = 'dwh',
                  end_date: str = 'today',
                  dimensions: t.Iterable[str] = None,
+                 add_view_id_column: bool = False,
                  use_flask_command: bool = False,
                  fail_on_no_data: bool = False
                  ) -> None:
@@ -36,6 +37,7 @@ class DownloadGoogleAnalyticsFlatTable(pipelines.Command):
             target_table_name: str, the schema qualified table name on the db_alias where the data should be inserted.
                                The table needs to exist.
             target_db_alias: str='dwh', the mara db alias where this data should be inserted
+            add_view_id_column: bool=False, adds a new column at the beginning with the view id given in parameter view_id
             use_flask_command: bool=False, if true uses the downloader via flask, which needs an import to the main
                                module in the app.py import path to make the command available (any print() in that path
                                will fail the download). If True, the credentials needed in the downloader itself are
@@ -51,6 +53,7 @@ class DownloadGoogleAnalyticsFlatTable(pipelines.Command):
         self.target_table_name = target_table_name
         self.target_db_alias = target_db_alias
         self.delimiter_char = '\t'
+        self.add_view_id_column = add_view_id_column
         self.use_flask_command = use_flask_command
         self.fail_on_no_data = fail_on_no_data
 
@@ -67,6 +70,7 @@ class DownloadGoogleAnalyticsFlatTable(pipelines.Command):
         return (ga_downloader_shell_command(self.view_id, self.start_date, self.end_date,
                                             self.metrics,dimensions=self.dimensions,
                                             delimiter_char=self.delimiter_char,
+                                            add_view_id_column=self.add_view_id_column,
                                             use_flask_command=self.use_flask_command,
                                             fail_on_no_data=self.fail_on_no_data)
                 + f'{_shell_linebreak_escape}| '
@@ -83,6 +87,7 @@ class DownloadGoogleAnalyticsFlatTable(pipelines.Command):
             ('end date', _.pre[escape(self.end_date)]),
             ('metrics', _.pre[escape(', '.join(self.metrics))]),
             ('dimensions', _.pre[escape(', '.join(self.dimensions if self.dimensions else []))]),
+            ('add view id column', _.pre[str(self.add_view_id_column)]),
             ('target table name', _.pre[escape(self.target_table_name)]),
             ('target db', _.pre[escape(self.target_db_alias)]),
             ('Invocation', _.pre[_invocation(self.use_flask_command)]),
@@ -110,6 +115,7 @@ def ga_downloader_shell_command(view_id: int,
                                 metrics: t.Iterable[str],
                                 dimensions: t.Iterable[str] = None,
                                 delimiter_char: str = '\t',
+                                add_view_id_column: bool = False,
                                 use_flask_command: bool = True,
                                 fail_on_no_data: bool = True,
                                 ):
@@ -123,6 +129,7 @@ def ga_downloader_shell_command(view_id: int,
         metrics: t.Iterable[str], the metrics to receive
         dimensions: t.Iterable[str] = None, the dimensions to receive
         delimiter_char: str='\t', a character that delimits the output fields.
+        add_view_id_column: bool=False, adds a new column at the beginning with the view id given in parameter view_id
         use_flask_command: bool=False, if true uses the downloader via flask, which needs an import in the flask app path
                            to make the command available and this can potentially print something which would make
                            the import fail. If True, the credentials are directly taken from the config,
@@ -139,6 +146,7 @@ def ga_downloader_shell_command(view_id: int,
         _shell_linebreak_escape,
         _indentions,
         f" --view-id='{view_id}'",
+        f' --add-view-id-column' if add_view_id_column else '--no-add-view-id-column',
         f" --start-date='{start_date}'",
         f" --end-date='{end_date}'",
         f' --metrics={metrics_param}',
