@@ -1,7 +1,7 @@
 import shlex
 import sys
-from data_integration import pipelines
-from data_integration.logging import logger
+from mara_pipelines import pipelines
+from mara_pipelines.logging import logger
 import mara_db.shell
 import typing as t
 

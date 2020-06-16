@@ -23,8 +23,8 @@ The analytics account access must be shared with the
 email address for which you configured the credentials (see below).
 
 ```python
-from data_integration.pipelines import Pipeline, Task
-from data_integration.commands.sql import ExecuteSQL
+from mara_pipelines.pipelines import Pipeline, Task
+from mara_pipelines.commands.sql import ExecuteSQL
 from mara_google_analytics_downloader.mara_integration import DownloadGoogleAnalyticsFlatTable
 
 pipeline = Pipeline(

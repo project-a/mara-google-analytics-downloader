@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name='mara-google-analytics-downloader',
-    version='0.1.0',
+    version='0.2.0',
 
     description='Opinionated lightweight ETL pipeline framework',
 
@@ -21,7 +21,7 @@ setup(
 
     install_requires=[
         'mara-db>=4.2.0',
-        'data-integration>=2.7.0',
+        'mara-pipelines>=3.0.0',
         'google-api-python-client>=1.7.11',
         'oauth2client>=1.5.0', # old, will be replaced soon
         'google_auth_oauthlib' # new, already used in the user credential helper
