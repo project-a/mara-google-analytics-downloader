@@ -19,6 +19,7 @@ class DownloadGoogleAnalyticsFlatTable(pipelines.Command):
                  target_db_alias: str = 'dwh',
                  end_date: str = 'today',
                  dimensions: t.Iterable[str] = None,
+                 filters: str = None,
                  add_view_id_column: bool = False,
                  use_flask_command: bool = False,
                  fail_on_no_data: bool = False
@@ -34,6 +35,7 @@ class DownloadGoogleAnalyticsFlatTable(pipelines.Command):
             end_date: str, the end date of data to receive
             metrics: t.Iterable[str], the metrics to receive
             dimensions: t.Iterable[str] = None, the dimensions to receive
+            filters: str=None, a filter string to be used in the query
             target_table_name: str, the schema qualified table name on the db_alias where the data should be inserted.
                                The table needs to exist.
             target_db_alias: str='dwh', the mara db alias where this data should be inserted

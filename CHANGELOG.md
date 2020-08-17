@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0 (2020-08-17)
+
+- add support for paramter '--filters' _NOTE:_ Not all metrics/dimensions are supporeted yet! see [static.py](mara_google_analytics_downloader/static.py)
+
 ## 0.3.0 (2020-06-16)
 
 - switch from data-integration (2.7.0) to mara-pipelines (3.0.0)

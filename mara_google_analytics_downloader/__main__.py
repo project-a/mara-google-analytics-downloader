@@ -16,6 +16,7 @@ import time
 from apiclient.discovery import build
 
 from mara_google_analytics_downloader import config as c
+from mara_google_analytics_downloader.filter_parsing import ga_parse_filter
 
 
 
@@ -30,6 +31,8 @@ from mara_google_analytics_downloader import config as c
               required=False)
 @click.option('--metrics', help='A comma-separated list of metrics to be used in the request',
               required=True)
+@click.option('--filters', help='A filter to be used in the request',
+              required=False)
 @click.option('--service-account-private-key-id', help='Service Account private_key_id',
               required=False)
 @click.option('--service-account-private-key', help='Service Account private_key',
@@ -61,6 +64,7 @@ def ga_download_to_csv(view_id: int,
                        end_date: str,
                        metrics: str,
                        dimensions: str = None,
+                       filters: str = None,
                        delimiter_char: str = '\t',
                        add_view_id_column: bool = False,
                        service_account_private_key_id: str = None,
@@ -141,6 +145,9 @@ def ga_download_to_csv(view_id: int,
                 'metrics': request_metrics,
                 'dimensions': reuqest_dimensions
             }
+
+            if filters:
+                ga_parse_filter(reportRequest, filters)
 
             response = analytics.reports().batchGet(body={'reportRequests': [reportRequest]}).execute()
             break
