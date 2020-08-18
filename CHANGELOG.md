@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 (2020-08-18)
+
+- fix mara integration for parameter '--filters'
+
 ## 0.4.0 (2020-08-17)
 
 - add support for paramter '--filters' _NOTE:_ Not all metrics/dimensions are supporeted yet! see [static.py](mara_google_analytics_downloader/static.py)
