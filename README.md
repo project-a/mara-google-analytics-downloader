@@ -47,7 +47,7 @@ CREATE TABLE public.ga_test (
     ga_sessions BIGINT
 )
 """,
-            echo_queries=False,
+            echo_queries=False
         ),
         DownloadGoogleAnalyticsFlatTable(
 
@@ -65,9 +65,9 @@ CREATE TABLE public.ga_test (
                 'ga:sessions'
             ],
             target_table_name='public.ga_test', # table where the data should end up
-            target_db_alias='dwh', # alias of the DB where the data should end up
-        ),
-    ]),
+            target_db_alias='dwh' # alias of the DB where the data should end up
+        )
+    ])
 )
 ```
 
