@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2 (2020-08-19)
+
+- fix mara integration for parameter '--filters' when is empty
+
 ## 0.4.1 (2020-08-18)
 
 - fix mara integration for parameter '--filters'

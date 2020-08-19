@@ -158,10 +158,11 @@ def ga_downloader_shell_command(view_id: int,
         f" --end-date='{end_date}'",
         f' --metrics={metrics_param}',
         f' --dimensions={dimensions_param}',
-        f" --filters='{filters}'",
         f" --delimiter-char='{delimiter_char}'",
         f' --fail-on-no-data' if fail_on_no_data else f' --no-fail-on-no-data'
     ])
+    if filters:
+        command.append(f" --filters='{filters}'")
     if not use_flask_command:
         if c.ga_service_account_client_id():
             command.extend([
