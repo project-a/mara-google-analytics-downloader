@@ -125,7 +125,7 @@ def ga_download_to_csv(view_id: int,
     while True:
         try:
             # Builds the google analytics service object
-            analytics = build('analyticsreporting', 'v4', credentials=credentials)
+            analytics = build('analyticsreporting', 'v4', credentials=credentials, cache_discovery=False)
 
             request_metrics = list(map(
                 lambda metric_name: {'expression': metric_name},
