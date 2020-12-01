@@ -35,5 +35,8 @@ setup(
     author='Mara contributors',
     license='MIT',
 
-    entry_points={},
+    entry_points='''
+        [console_scripts]
+        mara-google-analytics-downloader=mara_google_analytics_downloader.__main__:ga_download_to_csv
+    ''',
 )

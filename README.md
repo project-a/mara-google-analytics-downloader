@@ -105,4 +105,4 @@ credentials. This email address is:
 
 This package contains a small cli app which downloads a google analytics query and outputs it as csv.
 
-You can use it stand alone, see `python -m mara_google_analytics_downloader --help ` for how to use it.
+You can use it stand alone, see `mara-google-analytics-downloader --help` for how to use it.
