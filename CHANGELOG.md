@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0 (2020-12-01)
+
+- add all currently available dimensions and metrics from [Dimensions & Metrics Explorer](https://ga-dev-tools.appspot.com/dimensions-metrics-explorer/?)
+- set shell entry point
+- disable OAuth cache, fixes `ImportError: file_cache is unavailable' message
+
 ## 0.4.2 (2020-08-19)
 
 - fix mara integration for parameter '--filters' when is empty
