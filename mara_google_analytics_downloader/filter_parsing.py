@@ -19,7 +19,7 @@ def ga_parse_filter(report_request: dict, filters: str):
 
     # Reference: https://developers.google.com/analytics/devguides/reporting/core/v3/reference#filters
     if filters.find('(') >= 0 or filters.find(')') >= 0:
-        raise Exception('Breakets in parater --filters are not yet supported')
+        raise Exception('Breakets in paramter --filters are not yet supported')
 
 
     for or_filter in filters.split(','):
