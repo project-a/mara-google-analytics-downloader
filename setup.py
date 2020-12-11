@@ -5,19 +5,19 @@ import re
 def get_long_description():
     with open('README.md') as f:
         return re.sub('!\[(.*?)\]\(docs/(.*?)\)',
-                      r'![\1](https://github.com/hz-lschick/mara-google-analytics-downloader/raw/master/docs/\2)', f.read())
+                      r'![\1](https://github.com/mara/mara-google-analytics-downloader/raw/master/docs/\2)', f.read())
 
 
 setup(
     name='mara-google-analytics-downloader',
     version='1.0.0',
 
-    description='Opinionated lightweight ETL pipeline framework',
+    description='Download Google Analytics data in the mara etl framework',
 
     long_description=get_long_description(),
     long_description_content_type='text/markdown',
 
-    url='https://github.com/hz-lschick/mara-google-analytics-downloader',
+    url='https://github.com/mara/mara-google-analytics-downloader',
 
     install_requires=[
         'mara-db>=4.2.0',

@@ -11,7 +11,7 @@ This package contains a google analytics downloader to be used with the mara ETL
 To use the library directly:
 
 ```
-pip install git+https://github.com/hz-lschick/mara-google-analytics-downloader.git
+pip install git+https://github.com/mara/mara-google-analytics-downloader.git
 ```
 
 &nbsp;
