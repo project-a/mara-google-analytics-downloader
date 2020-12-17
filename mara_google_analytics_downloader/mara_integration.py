@@ -90,7 +90,7 @@ class DownloadGoogleAnalyticsFlatTable(pipelines.Command):
             ('end date', _.pre[escape(self.end_date)]),
             ('metrics', _.pre[escape(', '.join(self.metrics))]),
             ('dimensions', _.pre[escape(', '.join(self.dimensions if self.dimensions else []))]),
-            ('filters', _.pre[escape(self.filters)]),
+            ('filters', _.pre[escape(self.filters)] if self.filters else None),
             ('add view id column', _.pre[str(self.add_view_id_column)]),
             ('target table name', _.pre[escape(self.target_table_name)]),
             ('target db', _.pre[escape(self.target_db_alias)]),
