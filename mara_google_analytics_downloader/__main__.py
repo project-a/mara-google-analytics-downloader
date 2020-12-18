@@ -20,6 +20,39 @@ from mara_google_analytics_downloader.filter_parsing import ga_parse_filter
 
 
 
+def detect_api(metrics: t.List[str], dimensions: t.List[str]) -> str:
+    api = None
+    for metric in metrics:
+        current_api = None
+        if metric.startswith('ga:'):
+            current_api = 'ga'
+        elif metric.startswith('mcf:'):
+            current_api = 'mcf'
+        else:
+            raise ValueError(f'Could not detect API from metric {metric}. The metric must start with `ga:` or `mcf:`.')
+
+        if not api:
+            api = current_api
+        elif api != current_api:
+            raise ValueError(f'You can not use multiple APIs in your query. Make sure that all metrics and dimensions start with the same prefix e.g. `ga:` or `mcf:`.')
+
+    for dimension in dimensions:
+        current_api = None
+        if dimension.startswith('ga:'):
+            current_api = 'ga'
+        elif dimension.startswith('mcf:'):
+            current_api = 'mcf'
+        else:
+            raise ValueError(f'Could not detect API from dimension {dimension}. The dimension must start with `ga:` or `mcf:`.')
+
+        if not api:
+            api = current_api
+        elif api != current_api:
+            raise ValueError(f'You can not use multiple APIs in your query. Make sure that all metrics and dimensions start with the same prefix e.g. `ga:` or `mcf:`.')
+
+    return api
+
+
 @click.command()
 @click.option('--view-id', help='Google Analytics View ID',
               required=True)
@@ -91,6 +124,10 @@ def ga_download_to_csv(view_id: int,
     if not metrics:
         raise RuntimeError("Need metrics")
 
+    metrics_list = metrics.split(',') if metrics else []
+    dimensions_list = dimensions.split(',') if dimensions else []
+    api = detect_api(metrics_list, dimensions_list)
+
     # TODO: make sure we only get a single credential config overall and warn/abort if we have more than one
     #       (warn: no print to stdout allowed!)
 
@@ -122,35 +159,79 @@ def ga_download_to_csv(view_id: int,
 
     overall_tries = 0
     api_errors = 0
+    start_index = 1
+    stream = sys.stdout
+    nrows = 0
     while True:
         try:
-            # Builds the google analytics service object
-            analytics = build('analyticsreporting', 'v4', credentials=credentials, cache_discovery=False)
+            if api == 'ga':
+                # Builds the google analytics service object
+                analytics = build('analyticsreporting', 'v4', credentials=credentials, cache_discovery=False)
 
-            request_metrics = list(map(
-                lambda metric_name: {'expression': metric_name},
-                metrics.split(',')
-            ))
-
-            reuqest_dimensions = []
-            if dimensions:
-                reuqest_dimensions = list(map(
-                    lambda dimension_name: {'name': dimension_name},
-                    dimensions.split(',')
+                request_metrics = list(map(
+                    lambda metric_name: {'expression': metric_name},
+                    metrics.split(',')
                 ))
 
-            reportRequest = {
-                'viewId': view_id,
-                'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
-                'metrics': request_metrics,
-                'dimensions': reuqest_dimensions
-            }
+                reuqest_dimensions = []
+                if dimensions:
+                    reuqest_dimensions = list(map(
+                        lambda dimension_name: {'name': dimension_name},
+                        dimensions.split(',')
+                    ))
 
-            if filters:
-                ga_parse_filter(reportRequest, filters)
+                reportRequest = {
+                    'viewId': view_id,
+                    'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
+                    'metrics': request_metrics,
+                    'dimensions': reuqest_dimensions
+                }
 
-            response = analytics.reports().batchGet(body={'reportRequests': [reportRequest]}).execute()
-            break
+                if filters:
+                    ga_parse_filter(reportRequest, filters)
+
+                response = analytics.reports().batchGet(body={'reportRequests': [reportRequest]}).execute()
+                break
+            elif api == 'mcf':
+                # Builds the google analytics service object
+                analytics = build('analytics', 'v3', credentials=credentials, cache_discovery=False)
+
+                request = analytics.data().mcf().get(
+                    ids=f'ga:{view_id}',
+                    start_date=start_date,
+                    end_date=end_date,
+                    metrics=metrics,
+                    dimensions=dimensions,
+                    filters=filters,
+                    start_index=start_index
+                )
+
+                response = request.execute()
+
+                if api == 'ga':
+                    nrows += write_ga_response_as_csv_to_stream(response,
+                                                            stream=stream,
+                                                            delimiter_char=delimiter_char,
+                                                            view_id=view_id if add_view_id_column else None,
+                                                            write_header=False)
+                elif api == 'mcf':
+                    nrows += write_mcf_response_as_csv_to_stream(response,
+                                                                 stream=stream,
+                                                                 delimiter_char=delimiter_char,
+                                                                 view_id=view_id if add_view_id_column else None,
+                                                                 write_header=False)
+                else:
+                    raise NotImplementedError('Unexpected')
+
+                stream.flush()
+
+                if 'nextLink' in response: # if 'nextLink' is in response, the response is paged.
+                    start_index = start_index + response.get('max-results',1000)
+                    #print(f'Request next page with start_index={start_index}', file=sys.stderr, flush=True)
+                else:
+                    break
+            else:
+                raise NotImplementedError('Unexpected')
         except Exception as e:
             # some API down or so -> wait a bit and try again
             if overall_tries > 3:
@@ -160,15 +241,6 @@ def ga_download_to_csv(view_id: int,
             sleep_seconds = 20 * (overall_tries + 1)
             time.sleep(sleep_seconds)
             continue
-
-    stream = sys.stdout
-
-    nrows = write_response_as_csv_to_stream(response,
-                                            stream=stream,
-                                            delimiter_char=delimiter_char,
-                                            view_id=view_id if add_view_id_column else None,
-                                            write_header=False)
-    stream.flush()
 
     if fail_on_no_data and nrows == 0:
         raise ValueError("Received no data rows, failing")
@@ -237,11 +309,11 @@ def _google_analytics_credentials_from_user_credentials(
     return credentials
 
 
-def write_response_as_csv_to_stream(response,
-                                    stream: t.TextIO,
-                                    delimiter_char: str = '\t',
-                                    view_id: str = None,
-                                    write_header: bool = True):
+def write_ga_response_as_csv_to_stream(response,
+                                       stream: t.TextIO,
+                                       delimiter_char: str = '\t',
+                                       view_id: str = None,
+                                       write_header: bool = True):
     """Writes the Analytics Reporting API V4 response into a CSV stream.
 
     Header is written by default, see arg. write_header.
@@ -295,6 +367,66 @@ def write_response_as_csv_to_stream(response,
             if i == 0: # note: we only support here one date range TODO maybe something to consider as a future feature
                 for metricHeader, value in zip(metricHeaders, values.get('values')):
                     row.append(value)
+
+        csv_writer.writerow(row)
+        n_rows += 1
+
+    return n_rows
+
+def write_mcf_response_as_csv_to_stream(response,
+                                        stream: t.TextIO,
+                                        delimiter_char: str = '\t',
+                                        view_id: str = None,
+                                        write_header: bool = True):
+    """Writes the Multi-Channel Funnels Reporting API V3 response into a CSV stream.
+
+    Header is written by default, see arg. write_header.
+
+    Args:
+    response: An Multi-Channel Funnels Reporting API V3 response.
+    stream: t.TextIO, sink where the processed content is written to (in Text mode, so sys.stdout is suitable)
+    delimiter_char: str (default: '\t'), A character that delimits the output fields.
+    view_id: str (default: None), If given the view id will be added as a first column. Column name: 'vid'
+    write_header: bool (default: True), If a CSV header should be added at the start
+    """
+
+    import csv
+    import json
+
+    dialect = csv.excel
+    dialect.delimiter = delimiter_char
+
+    csv_writer = csv.writer(stream,dialect=dialect)
+
+    n_rows = 0
+    columnHeaders = response.get('columnHeaders', [])
+
+    # write header
+    if write_header:
+        headerRow = []
+        if view_id != None:
+            headerRow.append('vid')
+        for column_header in columnHeaders:
+            headerRow.append(column_header.name)
+        csv_writer.writerow(headerRow)
+
+    # write rows
+    for raw_row in response.get('rows', []):
+        row = []
+
+        if view_id != None:
+            row.append(str(view_id))
+
+        column_index = 0
+        for cell in raw_row:
+            column = columnHeaders[column_index]
+
+            if column['dataType'] == 'MCF_SEQUENCE':
+                row.append(json.dumps(cell['conversionPathValue']))
+            else:
+                row.append(cell['primitiveValue'])
+
+            column_index += 1
 
         csv_writer.writerow(row)
         n_rows += 1

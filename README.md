@@ -4,6 +4,15 @@ This package contains a google analytics downloader to be used with the mara ETL
 
 - Download a google analytics request to a database table
 
+Supported [Google Analytics APIs](https://developers.google.com/analytics/devguides/reporting):
+
+| API                | Version | Dimension/Metric naming |
+| ------------------------- | ------- | ----------------------- |
+| [Reporting API](https://developers.google.com/analytics/devguides/reporting/core/v4)            | V4      | `ga:<name>`             |
+| [Multi-Channel Funnels API](https://developers.google.com/analytics/devguides/reporting/mcf/v3) | V3      | `mcf:<name>`            |
+
+_Note: It is not possible to combine different APIs in one query._
+
 &nbsp;
 
 ## Installation
