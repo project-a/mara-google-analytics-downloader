@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 (2020-12-18)
+
+- add support for requests to the Multi-Channel Funnel Reporting API
+- fix broken mara html_doc_items when arg 'filters' is `None`
+
 ## 1.0.0 (2020-12-01)
 
 - add all currently available dimensions and metrics from [Dimensions & Metrics Explorer](https://ga-dev-tools.appspot.com/dimensions-metrics-explorer/?)
