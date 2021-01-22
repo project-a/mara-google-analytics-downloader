@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1 (2021-01-22)
+
+- fix mara integration broke when `add_view_id_column` was `False`
+
 ## 1.1.0 (2020-12-18)
 
 - add support for requests to the Multi-Channel Funnel Reporting API
