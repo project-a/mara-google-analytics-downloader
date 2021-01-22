@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2 (2021-01-22)
+
+- hotfix Google Analytics API did not work after version 1.1.0
+
 ## 1.1.1 (2021-01-22)
 
 - fix mara integration broke when `add_view_id_column` was `False`

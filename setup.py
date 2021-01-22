@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name='mara-google-analytics-downloader',
-    version='1.1.1',
+    version='1.1.2',
 
     description='Download Google Analytics data in the mara etl framework',
 
