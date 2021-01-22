@@ -1,0 +1,11 @@
+from . import local_config
+
+
+# patch mara config
+from .monkey_patch import patch
+import mara_google_analytics_downloader.config
+
+patch(mara_google_analytics_downloader.config.ga_service_account_private_key_id)(lambda:local_config.SERVICE_ACCOUNT_PRIVATE_KEY_ID)
+patch(mara_google_analytics_downloader.config.ga_service_account_private_key)(lambda:local_config.SERVICE_ACCOUNT_PRIVATE_KEY)
+patch(mara_google_analytics_downloader.config.ga_service_account_client_email)(lambda:local_config.SERVICE_ACCOUNT_CLIENT_EMAIL)
+patch(mara_google_analytics_downloader.config.ga_service_account_client_id)(lambda:local_config.SERVICE_ACCOUNT_CLIENT_ID)

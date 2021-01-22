@@ -26,7 +26,9 @@ setup(
         'oauth2client>=1.5.0', # old, will be replaced soon
         'google_auth_oauthlib' # new, already used in the user credential helper
     ],
-    tests_require=['pytest'],
+    extras_require={
+        'test': ['pytest']
+    },
 
     python_requires='>=3.6',
 

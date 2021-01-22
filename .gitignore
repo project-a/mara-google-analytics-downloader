@@ -130,3 +130,6 @@ dmypy.json
 
 # Editors/IDEs
 /.idea/
+
+tests/local_config.py
+tests/*.csv
