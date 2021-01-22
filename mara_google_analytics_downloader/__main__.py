@@ -208,20 +208,11 @@ def ga_download_to_csv(view_id: int,
 
                 response = request.execute()
 
-                if api == 'ga':
-                    nrows += write_ga_response_as_csv_to_stream(response,
-                                                            stream=stream,
-                                                            delimiter_char=delimiter_char,
-                                                            view_id=view_id if add_view_id_column else None,
-                                                            write_header=False)
-                elif api == 'mcf':
-                    nrows += write_mcf_response_as_csv_to_stream(response,
-                                                                 stream=stream,
-                                                                 delimiter_char=delimiter_char,
-                                                                 view_id=view_id if add_view_id_column else None,
-                                                                 write_header=False)
-                else:
-                    raise NotImplementedError('Unexpected')
+                nrows += write_mcf_response_as_csv_to_stream(response,
+                                                             stream=stream,
+                                                             delimiter_char=delimiter_char,
+                                                             view_id=view_id if add_view_id_column else None,
+                                                             write_header=False)
 
                 stream.flush()
 
@@ -241,6 +232,15 @@ def ga_download_to_csv(view_id: int,
             sleep_seconds = 20 * (overall_tries + 1)
             time.sleep(sleep_seconds)
             continue
+
+    if api == 'ga':
+        nrows += write_ga_response_as_csv_to_stream(response,
+                                                    stream=stream,
+                                                    delimiter_char=delimiter_char,
+                                                    view_id=view_id if add_view_id_column else None,
+                                                    write_header=False)
+
+        stream.flush()
 
     if fail_on_no_data and nrows == 0:
         raise ValueError("Received no data rows, failing")
