@@ -191,7 +191,20 @@ def ga_download_to_csv(view_id: int,
                     ga_parse_filter(reportRequest, filters)
 
                 response = analytics.reports().batchGet(body={'reportRequests': [reportRequest]}).execute()
-                break
+
+                nrows += write_ga_response_as_csv_to_stream(response,
+                                                            stream=stream,
+                                                            delimiter_char=delimiter_char,
+                                                            view_id=view_id if add_view_id_column else None,
+                                                            write_header=False)
+
+                stream.flush()
+
+                if 'nextLink' in response:  # if 'nextLink' is in response, the response is paged.
+                    start_index = start_index + response.get('max-results', 1000)
+                    # print(f'Request next page with start_index={start_index}', file=sys.stderr, flush=True)
+                else:
+                    break
             elif api == 'mcf':
                 # Builds the google analytics service object
                 analytics = build('analytics', 'v3', credentials=credentials, cache_discovery=False)
@@ -208,20 +221,11 @@ def ga_download_to_csv(view_id: int,
 
                 response = request.execute()
 
-                if api == 'ga':
-                    nrows += write_ga_response_as_csv_to_stream(response,
-                                                            stream=stream,
-                                                            delimiter_char=delimiter_char,
-                                                            view_id=view_id if add_view_id_column else None,
-                                                            write_header=False)
-                elif api == 'mcf':
-                    nrows += write_mcf_response_as_csv_to_stream(response,
-                                                                 stream=stream,
-                                                                 delimiter_char=delimiter_char,
-                                                                 view_id=view_id if add_view_id_column else None,
-                                                                 write_header=False)
-                else:
-                    raise NotImplementedError('Unexpected')
+                nrows += write_mcf_response_as_csv_to_stream(response,
+                                                             stream=stream,
+                                                             delimiter_char=delimiter_char,
+                                                             view_id=view_id if add_view_id_column else None,
+                                                             write_header=False)
 
                 stream.flush()
 
