@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.3 (2022-01-03)
+
+- fix support responses with more than 1000 rows from Google Analytics API by adding support for paged responses
+
 ## 1.1.2 (2021-01-22)
 
 - hotfix Google Analytics API did not work after version 1.1.0

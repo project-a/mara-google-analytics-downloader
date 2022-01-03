@@ -158,10 +158,10 @@ def ga_download_to_csv(view_id: int,
         raise RuntimeError("Need either credentials for a google user account or for a google service account")
 
     overall_tries = 0
-    api_errors = 0
     start_index = 1
     stream = sys.stdout
     nrows = 0
+    page_token = None
     while True:
         try:
             if api == 'ga':
@@ -184,14 +184,29 @@ def ga_download_to_csv(view_id: int,
                     'viewId': view_id,
                     'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
                     'metrics': request_metrics,
-                    'dimensions': reuqest_dimensions
+                    'dimensions': reuqest_dimensions,
+                    'pageToken': page_token
                 }
 
                 if filters:
                     ga_parse_filter(reportRequest, filters)
 
                 response = analytics.reports().batchGet(body={'reportRequests': [reportRequest]}).execute()
-                break
+
+                nrows += write_ga_response_as_csv_to_stream(response,
+                                                            stream=stream,
+                                                            delimiter_char=delimiter_char,
+                                                            view_id=view_id if add_view_id_column else None,
+                                                            write_header=False)
+
+                stream.flush()
+
+                if 'nextPageToken' in response.get('reports', [])[0]:
+                    page_token = response.get('reports', [])[0].get('nextPageToken', None)
+                    if not page_token:
+                        break
+                else:
+                    break
             elif api == 'mcf':
                 # Builds the google analytics service object
                 analytics = build('analytics', 'v3', credentials=credentials, cache_discovery=False)
@@ -232,15 +247,6 @@ def ga_download_to_csv(view_id: int,
             sleep_seconds = 20 * (overall_tries + 1)
             time.sleep(sleep_seconds)
             continue
-
-    if api == 'ga':
-        nrows += write_ga_response_as_csv_to_stream(response,
-                                                    stream=stream,
-                                                    delimiter_char=delimiter_char,
-                                                    view_id=view_id if add_view_id_column else None,
-                                                    write_header=False)
-
-        stream.flush()
 
     if fail_on_no_data and nrows == 0:
         raise ValueError("Received no data rows, failing")
